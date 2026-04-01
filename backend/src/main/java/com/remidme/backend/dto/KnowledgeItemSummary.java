@@ -8,6 +8,7 @@ public class KnowledgeItemSummary {
     private Long id;
     private String title;
     private String content;
+    private String tags;
     private LocalDateTime createdAt;
     private Long totalPlans;
     private Long completedPlans;
@@ -38,6 +39,14 @@ public class KnowledgeItemSummary {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -7,6 +7,7 @@ public class UpcomingReviewItem {
     private Long reviewId;
     private Long itemId;
     private String title;
+    private String tags;
     private LocalDate scheduledDate;
 
     public Long getReviewId() {
@@ -31,6 +32,14 @@ public class UpcomingReviewItem {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public LocalDate getScheduledDate() {

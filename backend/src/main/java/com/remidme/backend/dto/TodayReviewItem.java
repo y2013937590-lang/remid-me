@@ -8,6 +8,7 @@ public class TodayReviewItem {
     private Long itemId;
     private String title;
     private String content;
+    private String tags;
     private LocalDate scheduledDate;
     private String status;
     private boolean overdue;
@@ -42,6 +43,14 @@ public class TodayReviewItem {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public LocalDate getScheduledDate() {

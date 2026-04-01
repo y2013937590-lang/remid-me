@@ -1,52 +1,90 @@
 export default function KnowledgeItemList({
   items,
   loading,
+  currentPage,
+  totalItems,
+  totalPages,
   editingItemId,
   deletingItemId,
   selectedItemId,
   onEdit,
   onDelete,
-  onViewDetails
+  onPageChange,
+  onViewDetails,
+  onTagSelect
 }) {
   return (
-    <section style={styles.section}>
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.heading}>知识点总览</h2>
-          <p style={styles.description}>查看全部知识点、当前复习进度和下一次待复习日期。</p>
-        </div>
-      </div>
+    <section className="panel">
+      {loading ? <p className="muted-text">加载中...</p> : null}
+      {!loading && items.length === 0 ? <p className="empty-state">还没有知识点，先在右侧添加一条。</p> : null}
 
-      {loading ? <p>加载中...</p> : null}
-      {!loading && items.length === 0 ? <p>还没有知识点，先在上方添加一条。</p> : null}
-
-      <div style={styles.list}>
+      <div className="list-stack">
         {items.map((item) => {
           const totalPlans = item.totalPlans || 0;
           const completedPlans = item.completedPlans || 0;
           const progress = totalPlans === 0 ? 0 : Math.round((completedPlans / totalPlans) * 100);
+          const cardClassName = `item-card ${selectedItemId === item.id ? 'is-selected' : ''} ${
+            editingItemId === item.id ? 'is-editing' : ''
+          }`;
+          const tags = parseTags(item.tags);
 
           return (
-            <article key={item.id} style={styles.card}>
-              <div style={styles.cardHeader}>
+            <article
+              key={item.id}
+              className={`${cardClassName} item-card-clickable`}
+              onClick={() => onViewDetails(item.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onViewDetails(item.id);
+                }
+              }}
+            >
+              <div className="item-header">
                 <div>
-                  <div style={styles.titleRow}>
-                    <h3 style={styles.title}>{item.title}</h3>
-                    {editingItemId === item.id ? <span style={styles.editingTag}>编辑中</span> : null}
+                  <div className="review-head">
+                    <h3 className="mini-title">{item.title}</h3>
+                    {editingItemId === item.id ? <span className="tag tag-neutral">编辑中</span> : null}
                   </div>
-                  <p style={styles.content}>{item.content || '暂无内容'}</p>
+                  <p className="review-copy">{item.content || '暂无内容'}</p>
+                  {tags.length > 0 ? (
+                    <div className="tag-list">
+                      {tags.map((tag) => (
+                        <button
+                          key={`${item.id}-${tag}`}
+                          type="button"
+                          className="tag tag-neutral tag-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onTagSelect(tag);
+                          }}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-                <div style={styles.actions}>
-                  <button type="button" style={styles.detailButton} onClick={() => onViewDetails(item.id)}>
-                    {selectedItemId === item.id ? '查看中' : '查看明细'}
-                  </button>
-                  <button type="button" style={styles.editButton} onClick={() => onEdit(item)}>
+                <div className="item-actions">
+                  <button
+                    type="button"
+                    className="button-secondary"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEdit(item);
+                    }}
+                  >
                     编辑
                   </button>
                   <button
                     type="button"
-                    style={styles.deleteButton}
-                    onClick={() => onDelete(item.id)}
+                    className="button-danger"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDelete(item.id);
+                    }}
                     disabled={deletingItemId === item.id}
                   >
                     {deletingItemId === item.id ? '删除中...' : '删除'}
@@ -54,41 +92,61 @@ export default function KnowledgeItemList({
                 </div>
               </div>
 
-              <div style={styles.progressRow}>
-                <div style={styles.progressTrack}>
-                  <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+              <div className="progress-row">
+                <div className="progress-track">
+                  <div className="progress-fill" style={{ width: `${progress}%` }} />
                 </div>
-                <span style={styles.progressText}>{completedPlans}/{totalPlans} 已完成</span>
+                <span className="progress-text">{completedPlans}/{totalPlans} 已完成</span>
               </div>
 
-              <div style={styles.metaGrid}>
-                <div style={styles.metaCard}>
-                  <span style={styles.metaLabel}>待复习</span>
+              <div className="meta-grid">
+                <div className="meta-card">
+                  <span className="meta-label">待复习</span>
                   <strong>{item.pendingPlans || 0}</strong>
                 </div>
-                <div style={styles.metaCard}>
-                  <span style={styles.metaLabel}>下一次</span>
+                <div className="meta-card">
+                  <span className="meta-label">下一次</span>
                   <strong>{item.nextReviewDate || '已全部完成'}</strong>
-                </div>
-                <div style={styles.metaCard}>
-                  <span style={styles.metaLabel}>创建时间</span>
-                  <strong>{formatDateTime(item.createdAt)}</strong>
                 </div>
               </div>
 
               {item.latestStudyNote ? (
-                <div style={styles.noteCard}>
-                  <div style={styles.noteHeader}>
-                    <span style={styles.noteLabel}>最近一次学习笔记</span>
-                    <span style={styles.noteTime}>{formatDateTime(item.latestStudyNoteAt)}</span>
+                <div className="note-panel">
+                  <div className="review-head">
+                    <span className="meta-label">最近一次学习笔记</span>
+                    <span className="mini-meta">{formatDateTime(item.latestStudyNoteAt)}</span>
                   </div>
-                  <p style={styles.noteContent}>{item.latestStudyNote}</p>
+                  <p className="review-copy">{item.latestStudyNote}</p>
                 </div>
               ) : null}
             </article>
           );
         })}
       </div>
+
+      {!loading && totalItems > 20 ? (
+        <div className="pagination-bar">
+          <button
+            type="button"
+            className="button-secondary pagination-button"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+          >
+            上一页
+          </button>
+          <span className="pagination-status">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            className="button-secondary pagination-button"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+          >
+            下一页
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -100,154 +158,13 @@ function formatDateTime(value) {
   return value.replace('T', ' ').slice(0, 16);
 }
 
-const styles = {
-  section: {
-    borderTop: '1px solid #e2e8f0',
-    paddingTop: '24px'
-  },
-  header: {
-    marginBottom: '16px'
-  },
-  heading: {
-    margin: '0 0 4px'
-  },
-  description: {
-    margin: 0,
-    color: '#64748b'
-  },
-  list: {
-    display: 'grid',
-    gap: '16px'
-  },
-  card: {
-    border: '1px solid #dbe2ea',
-    borderRadius: '18px',
-    padding: '18px',
-    backgroundColor: '#fbfdff'
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '16px',
-    marginBottom: '16px'
-  },
-  titleRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '8px'
-  },
-  title: {
-    margin: 0
-  },
-  editingTag: {
-    padding: '4px 10px',
-    borderRadius: '999px',
-    backgroundColor: '#dbeafe',
-    color: '#1d4ed8',
-    fontSize: '12px',
-    fontWeight: 600
-  },
-  content: {
-    margin: 0,
-    color: '#334155',
-    whiteSpace: 'pre-wrap',
-    lineHeight: 1.6
-  },
-  actions: {
-    display: 'flex',
-    gap: '10px',
-    alignItems: 'flex-start',
-    flexWrap: 'wrap'
-  },
-  editButton: {
-    border: '1px solid #cbd5e1',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    backgroundColor: '#ffffff',
-    cursor: 'pointer'
-  },
-  detailButton: {
-    border: 'none',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    backgroundColor: '#0f172a',
-    color: '#ffffff',
-    cursor: 'pointer'
-  },
-  deleteButton: {
-    border: 'none',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    backgroundColor: '#dc2626',
-    color: '#ffffff',
-    cursor: 'pointer'
-  },
-  progressRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '16px'
-  },
-  progressTrack: {
-    flex: 1,
-    height: '10px',
-    backgroundColor: '#e2e8f0',
-    borderRadius: '999px',
-    overflow: 'hidden'
-  },
-  progressFill: {
-    height: '100%',
-    background: 'linear-gradient(90deg, #2563eb, #14b8a6)'
-  },
-  progressText: {
-    minWidth: '92px',
-    color: '#475569',
-    fontSize: '14px'
-  },
-  metaGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-    gap: '12px'
-  },
-  metaCard: {
-    padding: '12px 14px',
-    borderRadius: '14px',
-    backgroundColor: '#f1f5f9',
-    display: 'grid',
-    gap: '4px'
-  },
-  metaLabel: {
-    color: '#64748b',
-    fontSize: '13px'
-  },
-  noteCard: {
-    marginTop: '14px',
-    padding: '14px 16px',
-    borderRadius: '14px',
-    backgroundColor: '#fff7ed',
-    border: '1px solid #fdba74'
-  },
-  noteHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '12px',
-    marginBottom: '8px',
-    flexWrap: 'wrap'
-  },
-  noteLabel: {
-    color: '#9a3412',
-    fontSize: '13px',
-    fontWeight: 700
-  },
-  noteTime: {
-    color: '#9a3412',
-    fontSize: '12px'
-  },
-  noteContent: {
-    margin: 0,
-    color: '#7c2d12',
-    whiteSpace: 'pre-wrap',
-    lineHeight: 1.6
+function parseTags(value) {
+  if (!value) {
+    return [];
   }
-};
+
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}

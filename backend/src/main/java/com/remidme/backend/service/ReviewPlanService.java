@@ -30,10 +30,9 @@ public class ReviewPlanService {
         return reviewItems;
     }
 
-    public List<UpcomingReviewItem> getUpcomingPendingReviews(int days) {
-        int safeDays = Math.max(days, 1);
+    public List<UpcomingReviewItem> getUpcomingPendingReviews() {
         LocalDate today = LocalDate.now();
-        return reviewPlanMapper.findUpcomingPendingBetween(today, today.plusDays(safeDays));
+        return reviewPlanMapper.findUpcomingPendingAfter(today);
     }
 
     @Transactional

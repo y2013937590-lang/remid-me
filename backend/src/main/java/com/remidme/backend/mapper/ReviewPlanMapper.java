@@ -37,12 +37,16 @@ public interface ReviewPlanMapper {
             "ki.id AS item_id,",
             "ki.title,",
             "ki.content,",
+            "GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tags,",
             "rp.scheduled_date,",
             "rp.status",
             "FROM review_plan rp",
             "JOIN knowledge_item ki ON rp.item_id = ki.id",
+            "LEFT JOIN knowledge_item_tag kit ON kit.item_id = ki.id",
+            "LEFT JOIN tag t ON t.id = kit.tag_id",
             "WHERE rp.scheduled_date <= #{date}",
             "AND rp.status = 'pending'",
+            "GROUP BY rp.id, ki.id, ki.title, ki.content, rp.scheduled_date, rp.status",
             "ORDER BY rp.scheduled_date ASC, rp.id ASC"
     })
     @Results(id = "todayReviewItemResult", value = {
@@ -116,12 +120,15 @@ public interface ReviewPlanMapper {
             "rp.id AS review_id,",
             "ki.id AS item_id,",
             "ki.title,",
+            "GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tags,",
             "rp.scheduled_date",
             "FROM review_plan rp",
             "JOIN knowledge_item ki ON rp.item_id = ki.id",
+            "LEFT JOIN knowledge_item_tag kit ON kit.item_id = ki.id",
+            "LEFT JOIN tag t ON t.id = kit.tag_id",
             "WHERE rp.scheduled_date > #{startDate}",
-            "AND rp.scheduled_date <= #{endDate}",
             "AND rp.status = 'pending'",
+            "GROUP BY rp.id, ki.id, ki.title, rp.scheduled_date",
             "ORDER BY rp.scheduled_date ASC, rp.id ASC"
     })
     @Results(id = "upcomingReviewItemResult", value = {
@@ -129,8 +136,5 @@ public interface ReviewPlanMapper {
             @Result(property = "itemId", column = "item_id"),
             @Result(property = "scheduledDate", column = "scheduled_date")
     })
-    List<UpcomingReviewItem> findUpcomingPendingBetween(
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
+    List<UpcomingReviewItem> findUpcomingPendingAfter(@Param("startDate") LocalDate startDate);
 }

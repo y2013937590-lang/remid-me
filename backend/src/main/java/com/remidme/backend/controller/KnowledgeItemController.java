@@ -1,6 +1,6 @@
 package com.remidme.backend.controller;
 
-import com.remidme.backend.dto.KnowledgeItemSummary;
+import com.remidme.backend.dto.KnowledgeItemPageResponse;
 import com.remidme.backend.dto.ReviewPlanDetail;
 import com.remidme.backend.dto.SaveKnowledgeItemRequest;
 import com.remidme.backend.entity.KnowledgeItem;
@@ -33,8 +33,12 @@ public class KnowledgeItemController {
     }
 
     @GetMapping
-    public List<KnowledgeItemSummary> getItems(@RequestParam(required = false) String q) {
-        return knowledgeItemService.getAllItemSummaries(q);
+    public KnowledgeItemPageResponse getItems(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int pageSize
+    ) {
+        return knowledgeItemService.getItemSummaries(q, page, pageSize);
     }
 
     @GetMapping("/{id}")

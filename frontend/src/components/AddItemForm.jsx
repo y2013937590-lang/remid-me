@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 
-export default function AddItemForm({ apiBaseUrl, editingItem, onSaved, onCancelEdit }) {
-  const [formData, setFormData] = useState({ title: '', content: '' });
+export default function AddItemForm({
+  apiBaseUrl,
+  editingItem,
+  availableTags,
+  onSaved,
+  onCancelEdit,
+  onManageTags
+}) {
+  const [formData, setFormData] = useState({ title: '', content: '', tagIds: [] });
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
 
@@ -9,10 +16,11 @@ export default function AddItemForm({ apiBaseUrl, editingItem, onSaved, onCancel
     if (editingItem) {
       setFormData({
         title: editingItem.title || '',
-        content: editingItem.content || ''
+        content: editingItem.content || '',
+        tagIds: editingItem.tagIds || []
       });
     } else {
-      setFormData({ title: '', content: '' });
+      setFormData({ title: '', content: '', tagIds: [] });
     }
     setFeedback({ type: '', text: '' });
   }, [editingItem]);
@@ -20,6 +28,13 @@ export default function AddItemForm({ apiBaseUrl, editingItem, onSaved, onCancel
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleTag = (tagId) => {
+    setFormData((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(tagId) ? prev.tagIds.filter((currentId) => currentId !== tagId) : [...prev.tagIds, tagId]
+    }));
   };
 
   const handleSubmit = async (event) => {
@@ -46,11 +61,11 @@ export default function AddItemForm({ apiBaseUrl, editingItem, onSaved, onCancel
 
       setFeedback({
         type: 'success',
-        text: isEditing ? '知识点已更新。' : '知识点已添加，并生成 7 条复习计划。'
+        text: isEditing ? '已更新' : '已创建'
       });
 
       if (!isEditing) {
-        setFormData({ title: '', content: '' });
+        setFormData({ title: '', content: '', tagIds: [] });
       }
 
       await onSaved();
@@ -62,103 +77,79 @@ export default function AddItemForm({ apiBaseUrl, editingItem, onSaved, onCancel
   };
 
   return (
-    <form onSubmit={handleSubmit} style={styles.form}>
-      <div style={styles.header}>
+    <form onSubmit={handleSubmit} className="panel form-panel">
+      <div className="form-header">
         <div>
-          <h2 style={styles.heading}>{editingItem ? '编辑知识点' : '添加知识点'}</h2>
-          <p style={styles.description}>
-            {editingItem ? '修改标题或内容，不影响已生成的复习计划。' : '输入标题和内容，系统会自动生成 7 次复习计划。'}
-          </p>
+          <span className="eyebrow">{editingItem ? '编辑模式' : '新建内容'}</span>
+          <h2 className="section-title">{editingItem ? '修改当前知识点' : '添加一个新的知识点'}</h2>
         </div>
-        {editingItem ? (
-          <button type="button" style={styles.cancelButton} onClick={onCancelEdit}>
-            取消编辑
+        {onCancelEdit ? (
+          <button type="button" className="button-secondary" onClick={onCancelEdit}>
+            关闭
           </button>
         ) : null}
       </div>
-      <input
-        name="title"
-        placeholder="标题"
-        value={formData.title}
-        onChange={handleChange}
-        required
-        style={styles.input}
-      />
-      <textarea
-        name="content"
-        placeholder="内容"
-        value={formData.content}
-        onChange={handleChange}
-        rows={4}
-        style={styles.textarea}
-      />
-      <button type="submit" disabled={submitting} style={styles.button}>
-        {submitting ? (editingItem ? '保存中...' : '提交中...') : editingItem ? '保存修改' : '添加'}
-      </button>
+      <label className="form-field">
+        <span className="field-label">标题</span>
+        <input
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          required
+          className="field-input"
+        />
+      </label>
+      <div className="form-field">
+        <div className="field-head">
+          <span className="field-label">标签</span>
+          {onManageTags ? (
+            <button type="button" className="button-link" onClick={onManageTags}>
+              管理
+            </button>
+          ) : null}
+        </div>
+        {availableTags.length > 0 ? (
+          <div className="tag-picker">
+            {availableTags.map((tag) => (
+              <button
+                key={tag.id}
+                type="button"
+                className={`tag-option ${formData.tagIds.includes(tag.id) ? 'is-selected' : ''}`}
+                onClick={() => handleToggleTag(tag.id)}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="tag-picker-empty">
+            <div className="empty-state">暂无标签</div>
+            {onManageTags ? (
+              <button type="button" className="button-secondary" onClick={onManageTags}>
+                去标签页
+              </button>
+            ) : null}
+          </div>
+        )}
+      </div>
+      <label className="form-field">
+        <span className="field-label">内容</span>
+        <textarea
+          name="content"
+          value={formData.content}
+          onChange={handleChange}
+          rows={6}
+          className="field-textarea"
+        />
+      </label>
+      <div className="button-row">
+        <button type="submit" disabled={submitting} className="button-primary">
+          {submitting ? (editingItem ? '保存中...' : '提交中...') : editingItem ? '保存' : '创建'}
+        </button>
+      </div>
       {feedback.text ? (
-        <p style={feedback.type === 'error' ? styles.errorMessage : styles.successMessage}>{feedback.text}</p>
+        <p className={feedback.type === 'error' ? 'feedback-error' : 'feedback-success'}>{feedback.text}</p>
       ) : null}
     </form>
   );
 }
-
-const styles = {
-  form: {
-    display: 'grid',
-    gap: '12px',
-    padding: '20px',
-    borderRadius: '20px',
-    backgroundColor: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    alignSelf: 'start'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '12px',
-    alignItems: 'flex-start'
-  },
-  heading: {
-    margin: '0 0 6px'
-  },
-  description: {
-    margin: 0,
-    color: '#64748b',
-    lineHeight: 1.5
-  },
-  input: {
-    padding: '10px 12px',
-    borderRadius: '8px',
-    border: '1px solid #d1d5db'
-  },
-  textarea: {
-    padding: '10px 12px',
-    borderRadius: '8px',
-    border: '1px solid #d1d5db',
-    resize: 'vertical'
-  },
-  button: {
-    width: '140px',
-    padding: '10px 12px',
-    border: 'none',
-    borderRadius: '8px',
-    backgroundColor: '#0f766e',
-    color: '#ffffff',
-    cursor: 'pointer'
-  },
-  cancelButton: {
-    border: '1px solid #cbd5e1',
-    borderRadius: '10px',
-    padding: '10px 12px',
-    backgroundColor: '#ffffff',
-    cursor: 'pointer'
-  },
-  successMessage: {
-    margin: 0,
-    color: '#0f766e'
-  },
-  errorMessage: {
-    margin: 0,
-    color: '#b91c1c'
-  }
-};

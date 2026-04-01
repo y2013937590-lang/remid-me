@@ -3,6 +3,8 @@ package com.remidme.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class SaveKnowledgeItemRequest {
 
     @NotBlank(message = "title cannot be blank")
@@ -10,6 +12,7 @@ public class SaveKnowledgeItemRequest {
     private String title;
 
     private String content;
+    private List<Long> tagIds;
 
     public String getTitle() {
         return title;
@@ -25,5 +28,13 @@ public class SaveKnowledgeItemRequest {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public List<Long> getTagIds() {
+        return tagIds;
+    }
+
+    public void setTagIds(List<Long> tagIds) {
+        this.tagIds = tagIds;
     }
 }
