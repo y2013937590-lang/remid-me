@@ -1,6 +1,7 @@
 package com.remidme.backend.controller;
 
 import com.remidme.backend.dto.KnowledgeItemSummary;
+import com.remidme.backend.dto.ReviewPlanDetail;
 import com.remidme.backend.dto.SaveKnowledgeItemRequest;
 import com.remidme.backend.entity.KnowledgeItem;
 import com.remidme.backend.service.KnowledgeItemService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,8 +33,26 @@ public class KnowledgeItemController {
     }
 
     @GetMapping
-    public List<KnowledgeItemSummary> getItems() {
-        return knowledgeItemService.getAllItemSummaries();
+    public List<KnowledgeItemSummary> getItems(@RequestParam(required = false) String q) {
+        return knowledgeItemService.getAllItemSummaries(q);
+    }
+
+    @GetMapping("/{id}")
+    public KnowledgeItem getItem(@PathVariable Long id) {
+        KnowledgeItem item = knowledgeItemService.getItem(id);
+        if (item == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "knowledge item not found");
+        }
+        return item;
+    }
+
+    @GetMapping("/{id}/reviews")
+    public List<ReviewPlanDetail> getItemReviewDetails(@PathVariable Long id) {
+        KnowledgeItem item = knowledgeItemService.getItem(id);
+        if (item == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "knowledge item not found");
+        }
+        return knowledgeItemService.getItemReviewDetails(id);
     }
 
     @PostMapping

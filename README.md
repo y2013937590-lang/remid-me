@@ -8,6 +8,9 @@
 - 首页显示今天及逾期未完成的复习内容
 - 可以将单条复习记录标记为完成，并顺手记录学习笔记
 - 可以查看全部知识点及其复习进度
+- 支持按标题或内容搜索知识点
+- 支持查看未来 7 天待复习计划
+- 支持打开单个知识点的完整复习明细
 - 支持编辑知识点内容
 - 支持删除知识点及其全部复习计划
 - 知识点总览会显示最近一次学习笔记
@@ -16,10 +19,13 @@
 ## 接口
 
 - `POST /api/items` 新增知识点
-- `GET /api/items` 获取全部知识点及进度统计
+- `GET /api/items` 获取全部知识点及进度统计，支持 `q` 搜索参数
+- `GET /api/items/{id}` 获取单个知识点详情
+- `GET /api/items/{id}/reviews` 获取单个知识点的全部复习明细
 - `PUT /api/items/{id}` 编辑知识点
 - `DELETE /api/items/{id}` 删除知识点及其复习计划
 - `GET /api/reviews/today` 获取今天及逾期未完成的复习项
+- `GET /api/reviews/upcoming?days=7` 获取未来若干天的待复习计划
 - `PUT /api/reviews/{id}/complete` 将某条复习记录标记为已完成，并可附带 `studyNote`
 
 ## 数据库升级
@@ -58,5 +64,8 @@ remid-me/
         └── components/
             ├── AddItemForm.jsx
             ├── KnowledgeItemList.jsx
+            ├── ReviewHistoryPanel.jsx
+            ├── SearchToolbar.jsx
             └── TodayReviewList.jsx
+            └── UpcomingReviewList.jsx
 ```

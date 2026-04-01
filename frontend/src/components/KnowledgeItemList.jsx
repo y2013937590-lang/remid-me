@@ -3,8 +3,10 @@ export default function KnowledgeItemList({
   loading,
   editingItemId,
   deletingItemId,
+  selectedItemId,
   onEdit,
-  onDelete
+  onDelete,
+  onViewDetails
 }) {
   return (
     <section style={styles.section}>
@@ -35,6 +37,9 @@ export default function KnowledgeItemList({
                   <p style={styles.content}>{item.content || '暂无内容'}</p>
                 </div>
                 <div style={styles.actions}>
+                  <button type="button" style={styles.detailButton} onClick={() => onViewDetails(item.id)}>
+                    {selectedItemId === item.id ? '查看中' : '查看明细'}
+                  </button>
                   <button type="button" style={styles.editButton} onClick={() => onEdit(item)}>
                     编辑
                   </button>
@@ -152,13 +157,22 @@ const styles = {
   actions: {
     display: 'flex',
     gap: '10px',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    flexWrap: 'wrap'
   },
   editButton: {
     border: '1px solid #cbd5e1',
     borderRadius: '10px',
     padding: '10px 14px',
     backgroundColor: '#ffffff',
+    cursor: 'pointer'
+  },
+  detailButton: {
+    border: 'none',
+    borderRadius: '10px',
+    padding: '10px 14px',
+    backgroundColor: '#0f172a',
+    color: '#ffffff',
     cursor: 'pointer'
   },
   deleteButton: {

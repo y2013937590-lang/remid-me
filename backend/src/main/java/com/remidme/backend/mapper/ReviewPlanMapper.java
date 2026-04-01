@@ -1,6 +1,8 @@
 package com.remidme.backend.mapper;
 
+import com.remidme.backend.dto.ReviewPlanDetail;
 import com.remidme.backend.dto.TodayReviewItem;
+import com.remidme.backend.dto.UpcomingReviewItem;
 import com.remidme.backend.entity.ReviewPlan;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
@@ -95,4 +97,40 @@ public interface ReviewPlanMapper {
             "WHERE item_id = #{itemId}"
     })
     int deleteByItemId(@Param("itemId") Long itemId);
+
+    @Select({
+            "SELECT id, scheduled_date, status, completed_at, study_note",
+            "FROM review_plan",
+            "WHERE item_id = #{itemId}",
+            "ORDER BY scheduled_date ASC, id ASC"
+    })
+    @Results(id = "reviewPlanDetailResult", value = {
+            @Result(property = "scheduledDate", column = "scheduled_date"),
+            @Result(property = "completedAt", column = "completed_at"),
+            @Result(property = "studyNote", column = "study_note")
+    })
+    List<ReviewPlanDetail> findDetailsByItemId(@Param("itemId") Long itemId);
+
+    @Select({
+            "SELECT",
+            "rp.id AS review_id,",
+            "ki.id AS item_id,",
+            "ki.title,",
+            "rp.scheduled_date",
+            "FROM review_plan rp",
+            "JOIN knowledge_item ki ON rp.item_id = ki.id",
+            "WHERE rp.scheduled_date > #{startDate}",
+            "AND rp.scheduled_date <= #{endDate}",
+            "AND rp.status = 'pending'",
+            "ORDER BY rp.scheduled_date ASC, rp.id ASC"
+    })
+    @Results(id = "upcomingReviewItemResult", value = {
+            @Result(property = "reviewId", column = "review_id"),
+            @Result(property = "itemId", column = "item_id"),
+            @Result(property = "scheduledDate", column = "scheduled_date")
+    })
+    List<UpcomingReviewItem> findUpcomingPendingBetween(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

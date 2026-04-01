@@ -35,6 +35,7 @@ public interface KnowledgeItemMapper {
     KnowledgeItem findById(@Param("id") Long id);
 
     @Select({
+            "<script>",
             "SELECT",
             "ki.id,",
             "ki.title,",
@@ -48,20 +49,25 @@ public interface KnowledgeItemMapper {
             " FROM review_plan rp2",
             " WHERE rp2.item_id = ki.id",
             "   AND rp2.study_note IS NOT NULL",
-            "   AND rp2.study_note <> ''",
+            "   AND rp2.study_note &lt;&gt; ''",
             " ORDER BY rp2.completed_at DESC, rp2.id DESC",
             " LIMIT 1) AS latest_study_note,",
             "(SELECT rp3.completed_at",
             " FROM review_plan rp3",
             " WHERE rp3.item_id = ki.id",
             "   AND rp3.study_note IS NOT NULL",
-            "   AND rp3.study_note <> ''",
+            "   AND rp3.study_note &lt;&gt; ''",
             " ORDER BY rp3.completed_at DESC, rp3.id DESC",
             " LIMIT 1) AS latest_study_note_at",
             "FROM knowledge_item ki",
             "LEFT JOIN review_plan rp ON rp.item_id = ki.id",
+            "<if test='keyword != null and keyword != \"\"'>",
+            "WHERE ki.title LIKE CONCAT('%', #{keyword}, '%')",
+            "OR ki.content LIKE CONCAT('%', #{keyword}, '%')",
+            "</if>",
             "GROUP BY ki.id, ki.title, ki.content, ki.created_at",
-            "ORDER BY ki.created_at DESC, ki.id DESC"
+            "ORDER BY ki.created_at DESC, ki.id DESC",
+            "</script>"
     })
     @Results(value = {
             @Result(property = "createdAt", column = "created_at"),
@@ -72,7 +78,7 @@ public interface KnowledgeItemMapper {
             @Result(property = "latestStudyNote", column = "latest_study_note"),
             @Result(property = "latestStudyNoteAt", column = "latest_study_note_at")
     })
-    List<KnowledgeItemSummary> findAllSummaries();
+    List<KnowledgeItemSummary> findAllSummaries(@Param("keyword") String keyword);
 
     @Update({
             "UPDATE knowledge_item",

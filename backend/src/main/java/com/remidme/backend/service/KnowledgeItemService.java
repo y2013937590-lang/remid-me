@@ -1,6 +1,7 @@
 package com.remidme.backend.service;
 
 import com.remidme.backend.dto.KnowledgeItemSummary;
+import com.remidme.backend.dto.ReviewPlanDetail;
 import com.remidme.backend.dto.SaveKnowledgeItemRequest;
 import com.remidme.backend.entity.KnowledgeItem;
 import com.remidme.backend.entity.ReviewPlan;
@@ -39,8 +40,16 @@ public class KnowledgeItemService {
         return knowledgeItemMapper.findById(item.getId());
     }
 
-    public List<KnowledgeItemSummary> getAllItemSummaries() {
-        return knowledgeItemMapper.findAllSummaries();
+    public List<KnowledgeItemSummary> getAllItemSummaries(String keyword) {
+        return knowledgeItemMapper.findAllSummaries(normalizeKeyword(keyword));
+    }
+
+    public KnowledgeItem getItem(Long id) {
+        return knowledgeItemMapper.findById(id);
+    }
+
+    public List<ReviewPlanDetail> getItemReviewDetails(Long id) {
+        return reviewPlanMapper.findDetailsByItemId(id);
     }
 
     @Transactional
@@ -77,5 +86,14 @@ public class KnowledgeItemService {
             plans.add(plan);
         }
         return plans;
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return null;
+        }
+
+        String trimmed = keyword.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

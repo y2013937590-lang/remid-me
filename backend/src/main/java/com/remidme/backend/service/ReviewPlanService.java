@@ -1,6 +1,7 @@
 package com.remidme.backend.service;
 
 import com.remidme.backend.dto.TodayReviewItem;
+import com.remidme.backend.dto.UpcomingReviewItem;
 import com.remidme.backend.entity.ReviewPlan;
 import com.remidme.backend.mapper.ReviewPlanMapper;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,12 @@ public class ReviewPlanService {
             reviewItem.setOverdue(reviewItem.getScheduledDate() != null && reviewItem.getScheduledDate().isBefore(today));
         }
         return reviewItems;
+    }
+
+    public List<UpcomingReviewItem> getUpcomingPendingReviews(int days) {
+        int safeDays = Math.max(days, 1);
+        LocalDate today = LocalDate.now();
+        return reviewPlanMapper.findUpcomingPendingBetween(today, today.plusDays(safeDays));
     }
 
     @Transactional

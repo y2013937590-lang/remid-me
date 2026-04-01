@@ -2,6 +2,7 @@ package com.remidme.backend.controller;
 
 import com.remidme.backend.dto.CompleteReviewRequest;
 import com.remidme.backend.dto.TodayReviewItem;
+import com.remidme.backend.dto.UpcomingReviewItem;
 import com.remidme.backend.service.ReviewPlanService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
@@ -29,6 +31,11 @@ public class ReviewPlanController {
     @GetMapping("/today")
     public List<TodayReviewItem> getTodayReviews() {
         return reviewPlanService.getTodayPendingReviews();
+    }
+
+    @GetMapping("/upcoming")
+    public List<UpcomingReviewItem> getUpcomingReviews(@RequestParam(defaultValue = "7") int days) {
+        return reviewPlanService.getUpcomingPendingReviews(days);
     }
 
     @PutMapping("/{id}/complete")
