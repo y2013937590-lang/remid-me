@@ -17,7 +17,12 @@ public class ReviewPlanService {
     }
 
     public List<TodayReviewItem> getTodayPendingReviews() {
-        return reviewPlanMapper.findTodayPending(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        List<TodayReviewItem> reviewItems = reviewPlanMapper.findPendingDueUntil(today);
+        for (TodayReviewItem reviewItem : reviewItems) {
+            reviewItem.setOverdue(reviewItem.getScheduledDate() != null && reviewItem.getScheduledDate().isBefore(today));
+        }
+        return reviewItems;
     }
 
     public boolean completeReview(Long reviewId) {

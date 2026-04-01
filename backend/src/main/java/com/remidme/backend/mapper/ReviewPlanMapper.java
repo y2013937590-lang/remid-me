@@ -2,6 +2,7 @@ package com.remidme.backend.mapper;
 
 import com.remidme.backend.dto.TodayReviewItem;
 import com.remidme.backend.entity.ReviewPlan;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -37,16 +38,16 @@ public interface ReviewPlanMapper {
             "rp.status",
             "FROM review_plan rp",
             "JOIN knowledge_item ki ON rp.item_id = ki.id",
-            "WHERE rp.scheduled_date = #{date}",
+            "WHERE rp.scheduled_date <= #{date}",
             "AND rp.status = 'pending'",
-            "ORDER BY rp.id ASC"
+            "ORDER BY rp.scheduled_date ASC, rp.id ASC"
     })
     @Results(id = "todayReviewItemResult", value = {
             @Result(property = "reviewId", column = "review_id"),
             @Result(property = "itemId", column = "item_id"),
             @Result(property = "scheduledDate", column = "scheduled_date")
     })
-    List<TodayReviewItem> findTodayPending(@Param("date") LocalDate date);
+    List<TodayReviewItem> findPendingDueUntil(@Param("date") LocalDate date);
 
     @Update({
             "UPDATE review_plan",
@@ -56,4 +57,10 @@ public interface ReviewPlanMapper {
             "AND status = 'pending'"
     })
     int markCompleted(@Param("id") Long id);
+
+    @Delete({
+            "DELETE FROM review_plan",
+            "WHERE item_id = #{itemId}"
+    })
+    int deleteByItemId(@Param("itemId") Long itemId);
 }

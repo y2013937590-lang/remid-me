@@ -1,11 +1,14 @@
 package com.remidme.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public class AddKnowledgeItemRequest {
+public class SaveKnowledgeItemRequest {
 
     @NotBlank(message = "title cannot be blank")
+    @Size(max = 255, message = "title length must be less than or equal to 255")
     private String title;
+
     private String content;
 
     public String getTitle() {

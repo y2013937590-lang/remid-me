@@ -1,6 +1,7 @@
 package com.remidme.backend.service;
 
-import com.remidme.backend.dto.AddKnowledgeItemRequest;
+import com.remidme.backend.dto.KnowledgeItemSummary;
+import com.remidme.backend.dto.SaveKnowledgeItemRequest;
 import com.remidme.backend.entity.KnowledgeItem;
 import com.remidme.backend.entity.ReviewPlan;
 import com.remidme.backend.mapper.KnowledgeItemMapper;
@@ -26,7 +27,7 @@ public class KnowledgeItemService {
     }
 
     @Transactional
-    public KnowledgeItem createItem(AddKnowledgeItemRequest request) {
+    public KnowledgeItem createItem(SaveKnowledgeItemRequest request) {
         KnowledgeItem item = new KnowledgeItem();
         item.setTitle(request.getTitle());
         item.setContent(request.getContent());
@@ -36,6 +37,34 @@ public class KnowledgeItemService {
         reviewPlanMapper.batchInsert(plans);
 
         return knowledgeItemMapper.findById(item.getId());
+    }
+
+    public List<KnowledgeItemSummary> getAllItemSummaries() {
+        return knowledgeItemMapper.findAllSummaries();
+    }
+
+    @Transactional
+    public KnowledgeItem updateItem(Long id, SaveKnowledgeItemRequest request) {
+        KnowledgeItem existingItem = knowledgeItemMapper.findById(id);
+        if (existingItem == null) {
+            return null;
+        }
+
+        existingItem.setTitle(request.getTitle());
+        existingItem.setContent(request.getContent());
+        knowledgeItemMapper.updateById(existingItem);
+        return knowledgeItemMapper.findById(id);
+    }
+
+    @Transactional
+    public boolean deleteItem(Long id) {
+        KnowledgeItem existingItem = knowledgeItemMapper.findById(id);
+        if (existingItem == null) {
+            return false;
+        }
+
+        reviewPlanMapper.deleteByItemId(id);
+        return knowledgeItemMapper.deleteById(id) > 0;
     }
 
     private List<ReviewPlan> buildReviewPlans(Long itemId, LocalDate baseDate) {

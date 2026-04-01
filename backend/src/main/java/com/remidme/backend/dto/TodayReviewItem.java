@@ -10,6 +10,7 @@ public class TodayReviewItem {
     private String content;
     private LocalDate scheduledDate;
     private String status;
+    private boolean overdue;
 
     public Long getReviewId() {
         return reviewId;
@@ -57,5 +58,13 @@ public class TodayReviewItem {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public boolean isOverdue() {
+        return overdue;
+    }
+
+    public void setOverdue(boolean overdue) {
+        this.overdue = overdue;
     }
 }
