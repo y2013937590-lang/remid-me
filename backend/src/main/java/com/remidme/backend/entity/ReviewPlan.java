@@ -10,6 +10,7 @@ public class ReviewPlan {
     private LocalDate scheduledDate;
     private String status;
     private LocalDateTime completedAt;
+    private String studyNote;
 
     public Long getId() {
         return id;
@@ -49,5 +50,13 @@ public class ReviewPlan {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public String getStudyNote() {
+        return studyNote;
+    }
+
+    public void setStudyNote(String studyNote) {
+        this.studyNote = studyNote;
     }
 }

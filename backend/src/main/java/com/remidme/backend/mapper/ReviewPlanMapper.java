@@ -19,10 +19,10 @@ public interface ReviewPlanMapper {
 
     @Insert({
             "<script>",
-            "INSERT INTO review_plan (item_id, scheduled_date, status, completed_at)",
+            "INSERT INTO review_plan (item_id, scheduled_date, status, completed_at, study_note)",
             "VALUES",
             "<foreach collection='plans' item='plan' separator=','>",
-            "(#{plan.itemId}, #{plan.scheduledDate}, #{plan.status}, #{plan.completedAt})",
+            "(#{plan.itemId}, #{plan.scheduledDate}, #{plan.status}, #{plan.completedAt}, #{plan.studyNote})",
             "</foreach>",
             "</script>"
     })
@@ -52,11 +52,12 @@ public interface ReviewPlanMapper {
     @Update({
             "UPDATE review_plan",
             "SET status = 'completed',",
-            "completed_at = NOW()",
+            "completed_at = NOW(),",
+            "study_note = #{studyNote}",
             "WHERE id = #{id}",
             "AND status = 'pending'"
     })
-    int markCompleted(@Param("id") Long id);
+    int markCompleted(@Param("id") Long id, @Param("studyNote") String studyNote);
 
     @Delete({
             "DELETE FROM review_plan",

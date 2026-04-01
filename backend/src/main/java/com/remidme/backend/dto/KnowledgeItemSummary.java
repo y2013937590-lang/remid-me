@@ -13,6 +13,8 @@ public class KnowledgeItemSummary {
     private Long completedPlans;
     private Long pendingPlans;
     private LocalDate nextReviewDate;
+    private String latestStudyNote;
+    private LocalDateTime latestStudyNoteAt;
 
     public Long getId() {
         return id;
@@ -76,5 +78,21 @@ public class KnowledgeItemSummary {
 
     public void setNextReviewDate(LocalDate nextReviewDate) {
         this.nextReviewDate = nextReviewDate;
+    }
+
+    public String getLatestStudyNote() {
+        return latestStudyNote;
+    }
+
+    public void setLatestStudyNote(String latestStudyNote) {
+        this.latestStudyNote = latestStudyNote;
+    }
+
+    public LocalDateTime getLatestStudyNoteAt() {
+        return latestStudyNoteAt;
+    }
+
+    public void setLatestStudyNoteAt(LocalDateTime latestStudyNoteAt) {
+        this.latestStudyNoteAt = latestStudyNoteAt;
     }
 }

@@ -41,9 +41,23 @@ public interface KnowledgeItemMapper {
             "ki.content,",
             "ki.created_at,",
             "COUNT(rp.id) AS total_plans,",
-            "SUM(CASE WHEN rp.status = 'completed' THEN 1 ELSE 0 END) AS completed_plans,",
-            "SUM(CASE WHEN rp.status = 'pending' THEN 1 ELSE 0 END) AS pending_plans,",
-            "MIN(CASE WHEN rp.status = 'pending' THEN rp.scheduled_date END) AS next_review_date",
+            "COALESCE(SUM(CASE WHEN rp.status = 'completed' THEN 1 ELSE 0 END), 0) AS completed_plans,",
+            "COALESCE(SUM(CASE WHEN rp.status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_plans,",
+            "MIN(CASE WHEN rp.status = 'pending' THEN rp.scheduled_date END) AS next_review_date,",
+            "(SELECT rp2.study_note",
+            " FROM review_plan rp2",
+            " WHERE rp2.item_id = ki.id",
+            "   AND rp2.study_note IS NOT NULL",
+            "   AND rp2.study_note <> ''",
+            " ORDER BY rp2.completed_at DESC, rp2.id DESC",
+            " LIMIT 1) AS latest_study_note,",
+            "(SELECT rp3.completed_at",
+            " FROM review_plan rp3",
+            " WHERE rp3.item_id = ki.id",
+            "   AND rp3.study_note IS NOT NULL",
+            "   AND rp3.study_note <> ''",
+            " ORDER BY rp3.completed_at DESC, rp3.id DESC",
+            " LIMIT 1) AS latest_study_note_at",
             "FROM knowledge_item ki",
             "LEFT JOIN review_plan rp ON rp.item_id = ki.id",
             "GROUP BY ki.id, ki.title, ki.content, ki.created_at",
@@ -54,7 +68,9 @@ public interface KnowledgeItemMapper {
             @Result(property = "totalPlans", column = "total_plans"),
             @Result(property = "completedPlans", column = "completed_plans"),
             @Result(property = "pendingPlans", column = "pending_plans"),
-            @Result(property = "nextReviewDate", column = "next_review_date")
+            @Result(property = "nextReviewDate", column = "next_review_date"),
+            @Result(property = "latestStudyNote", column = "latest_study_note"),
+            @Result(property = "latestStudyNoteAt", column = "latest_study_note_at")
     })
     List<KnowledgeItemSummary> findAllSummaries();
 

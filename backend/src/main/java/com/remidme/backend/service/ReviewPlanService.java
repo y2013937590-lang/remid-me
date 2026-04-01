@@ -25,7 +25,16 @@ public class ReviewPlanService {
         return reviewItems;
     }
 
-    public boolean completeReview(Long reviewId) {
-        return reviewPlanMapper.markCompleted(reviewId) > 0;
+    public boolean completeReview(Long reviewId, String studyNote) {
+        return reviewPlanMapper.markCompleted(reviewId, normalizeStudyNote(studyNote)) > 0;
+    }
+
+    private String normalizeStudyNote(String studyNote) {
+        if (studyNote == null) {
+            return null;
+        }
+
+        String trimmed = studyNote.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

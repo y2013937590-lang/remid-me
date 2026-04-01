@@ -6,10 +6,11 @@
 
 - 新增知识点后自动生成 7 条复习计划，日期偏移为 `0/1/2/4/7/15/21` 天
 - 首页显示今天及逾期未完成的复习内容
-- 可以将单条复习记录标记为完成
+- 可以将单条复习记录标记为完成，并顺手记录学习笔记
 - 可以查看全部知识点及其复习进度
 - 支持编辑知识点内容
 - 支持删除知识点及其全部复习计划
+- 知识点总览会显示最近一次学习笔记
 
 ## 接口
 
@@ -18,7 +19,15 @@
 - `PUT /api/items/{id}` 编辑知识点
 - `DELETE /api/items/{id}` 删除知识点及其复习计划
 - `GET /api/reviews/today` 获取今天及逾期未完成的复习项
-- `PUT /api/reviews/{id}/complete` 将某条复习记录标记为已完成
+- `PUT /api/reviews/{id}/complete` 将某条复习记录标记为已完成，并可附带 `studyNote`
+
+## 数据库升级
+
+如果你之前已经创建过 `review_plan` 表，需要补这一条：
+
+```sql
+ALTER TABLE review_plan ADD COLUMN study_note TEXT NULL;
+```
 
 ## 目录结构
 

@@ -70,6 +70,16 @@ export default function KnowledgeItemList({
                   <strong>{formatDateTime(item.createdAt)}</strong>
                 </div>
               </div>
+
+              {item.latestStudyNote ? (
+                <div style={styles.noteCard}>
+                  <div style={styles.noteHeader}>
+                    <span style={styles.noteLabel}>最近一次学习笔记</span>
+                    <span style={styles.noteTime}>{formatDateTime(item.latestStudyNoteAt)}</span>
+                  </div>
+                  <p style={styles.noteContent}>{item.latestStudyNote}</p>
+                </div>
+              ) : null}
             </article>
           );
         })}
@@ -196,5 +206,34 @@ const styles = {
   metaLabel: {
     color: '#64748b',
     fontSize: '13px'
+  },
+  noteCard: {
+    marginTop: '14px',
+    padding: '14px 16px',
+    borderRadius: '14px',
+    backgroundColor: '#fff7ed',
+    border: '1px solid #fdba74'
+  },
+  noteHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    marginBottom: '8px',
+    flexWrap: 'wrap'
+  },
+  noteLabel: {
+    color: '#9a3412',
+    fontSize: '13px',
+    fontWeight: 700
+  },
+  noteTime: {
+    color: '#9a3412',
+    fontSize: '12px'
+  },
+  noteContent: {
+    margin: 0,
+    color: '#7c2d12',
+    whiteSpace: 'pre-wrap',
+    lineHeight: 1.6
   }
 };

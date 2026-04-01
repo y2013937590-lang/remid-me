@@ -11,5 +11,6 @@ CREATE TABLE review_plan (
   scheduled_date DATE NOT NULL,
   status ENUM('pending', 'completed') DEFAULT 'pending',
   completed_at DATETIME NULL,
+  study_note TEXT NULL,
   FOREIGN KEY (item_id) REFERENCES knowledge_item(id)
 );

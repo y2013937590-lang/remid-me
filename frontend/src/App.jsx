@@ -79,11 +79,21 @@ export default function App() {
     }
   };
 
-  const handleComplete = async (reviewId) => {
+  const handleComplete = async (reviewId, studyNote) => {
     setCompletingReviewId(reviewId);
     setError('');
     try {
-      await requestJson(`/reviews/${reviewId}/complete`, { method: 'PUT' }, '标记复习完成失败');
+      await requestJson(
+        `/reviews/${reviewId}/complete`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ studyNote })
+        },
+        '标记复习完成失败'
+      );
       await Promise.all([loadItems(), loadReviews()]);
     } catch (err) {
       const message = getErrorMessage('标记复习完成失败', err);

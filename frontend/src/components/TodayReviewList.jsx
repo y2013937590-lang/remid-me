@@ -1,7 +1,16 @@
+import { useState } from 'react';
+
 export default function TodayReviewList({ reviews, loading, completingReviewId, onComplete }) {
+  const [notes, setNotes] = useState({});
+
+  const handleNoteChange = (reviewId, value) => {
+    setNotes((prev) => ({ ...prev, [reviewId]: value }));
+  };
+
   const handleClick = async (reviewId) => {
     try {
-      await onComplete(reviewId);
+      await onComplete(reviewId, notes[reviewId] || '');
+      setNotes((prev) => ({ ...prev, [reviewId]: '' }));
     } catch (error) {
       // Error state is handled in the parent component.
     }
@@ -27,6 +36,13 @@ export default function TodayReviewList({ reviews, loading, completingReviewId, 
               </div>
               <p style={styles.content}>{review.content || '暂无内容'}</p>
               <p style={styles.meta}>计划日期：{review.scheduledDate}</p>
+              <textarea
+                value={notes[review.reviewId] || ''}
+                onChange={(event) => handleNoteChange(review.reviewId, event.target.value)}
+                placeholder="这次复习顺手记点笔记，比如易错点、联想记忆、例句..."
+                rows={3}
+                style={styles.textarea}
+              />
             </div>
             <button
               type="button"
@@ -87,6 +103,16 @@ const styles = {
   content: {
     margin: '0 0 8px',
     whiteSpace: 'pre-wrap'
+  },
+  textarea: {
+    width: '100%',
+    marginTop: '8px',
+    padding: '10px 12px',
+    borderRadius: '10px',
+    border: '1px solid #cbd5e1',
+    resize: 'vertical',
+    font: 'inherit',
+    boxSizing: 'border-box'
   },
   meta: {
     margin: 0,
