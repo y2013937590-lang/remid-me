@@ -1,11 +1,9 @@
 package com.remidme.backend.entity;
 
-public class Tag {
+public class TagCategory {
 
     private Long id;
     private String name;
-    private Long categoryId;
-    private String categoryName;
     private Integer sortOrder;
 
     public Long getId() {
@@ -22,22 +20,6 @@ public class Tag {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
     }
 
     public Integer getSortOrder() {

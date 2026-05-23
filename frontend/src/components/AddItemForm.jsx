@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function AddItemForm({
   apiBaseUrl,
   editingItem,
-  availableTags,
+  availableTagGroups,
   onSaved,
   onCancelEdit,
   onManageTags
@@ -11,13 +11,15 @@ export default function AddItemForm({
   const [formData, setFormData] = useState({ title: '', content: '', tagIds: [] });
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
+  const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
+  const tagMenuRef = useRef(null);
 
   useEffect(() => {
     if (editingItem) {
       setFormData({
         title: editingItem.title || '',
         content: editingItem.content || '',
-        tagIds: editingItem.tagIds || []
+        tagIds: Array.isArray(editingItem.tagIds) ? editingItem.tagIds.slice(0, 1) : []
       });
     } else {
       setFormData({ title: '', content: '', tagIds: [] });
@@ -25,17 +27,35 @@ export default function AddItemForm({
     setFeedback({ type: '', text: '' });
   }, [editingItem]);
 
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (tagMenuRef.current?.contains(event.target)) {
+        return;
+      }
+      setIsTagMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleToggleTag = (tagId) => {
+  const handleTagChange = (value) => {
     setFormData((prev) => ({
       ...prev,
-      tagIds: prev.tagIds.includes(tagId) ? prev.tagIds.filter((currentId) => currentId !== tagId) : [...prev.tagIds, tagId]
+      tagIds: value ? [Number(value)] : []
     }));
+    setIsTagMenuOpen(false);
   };
+
+  const selectedTagId = formData.tagIds[0] ? `${formData.tagIds[0]}` : '';
+  const selectedTag = availableTagGroups.flatMap((group) => group.tags).find((tag) => `${tag.id}` === selectedTagId) || null;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -79,10 +99,7 @@ export default function AddItemForm({
   return (
     <form onSubmit={handleSubmit} className="panel form-panel">
       <div className="form-header">
-        <div>
-          <span className="eyebrow">{editingItem ? '编辑模式' : '新建内容'}</span>
-          <h2 className="section-title">{editingItem ? '修改当前知识点' : '添加一个新的知识点'}</h2>
-        </div>
+        <h2 className="section-title">{editingItem ? '编辑知识点' : '新建知识点'}</h2>
         {onCancelEdit ? (
           <button type="button" className="button-secondary" onClick={onCancelEdit}>
             关闭
@@ -108,18 +125,42 @@ export default function AddItemForm({
             </button>
           ) : null}
         </div>
-        {availableTags.length > 0 ? (
-          <div className="tag-picker">
-            {availableTags.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                className={`tag-option ${formData.tagIds.includes(tag.id) ? 'is-selected' : ''}`}
-                onClick={() => handleToggleTag(tag.id)}
-              >
-                {tag.name}
-              </button>
-            ))}
+        {availableTagGroups.length > 0 ? (
+          <div ref={tagMenuRef} className="custom-select">
+            <button
+              type="button"
+              className={`custom-select-trigger ${isTagMenuOpen ? 'is-open' : ''}`}
+              onClick={() => setIsTagMenuOpen((open) => !open)}
+            >
+              <span>{selectedTag?.name || '不选择'}</span>
+              <span className="custom-select-caret" />
+            </button>
+            {isTagMenuOpen ? (
+              <div className="custom-select-menu custom-select-menu-grouped">
+                <button
+                  type="button"
+                  className={`custom-select-option ${selectedTagId === '' ? 'is-selected' : ''}`}
+                  onClick={() => handleTagChange('')}
+                >
+                  不选择
+                </button>
+                {availableTagGroups.map((group) => (
+                  <div key={group.id} className="custom-select-group">
+                    <div className="custom-select-group-label">{group.name}</div>
+                    {group.tags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        className={`custom-select-option ${selectedTagId === `${tag.id}` ? 'is-selected' : ''}`}
+                        onClick={() => handleTagChange(`${tag.id}`)}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="tag-picker-empty">

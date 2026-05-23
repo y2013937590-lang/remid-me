@@ -1,5 +1,6 @@
 package com.remidme.backend.controller;
 
+import com.remidme.backend.dto.ReorderTagRequest;
 import com.remidme.backend.dto.SaveTagRequest;
 import com.remidme.backend.dto.TagSummary;
 import com.remidme.backend.entity.Tag;
@@ -44,6 +45,15 @@ public class TagController {
     @PutMapping("/{id}")
     public Tag updateTag(@PathVariable Long id, @Valid @RequestBody SaveTagRequest request) {
         Tag tag = tagService.updateTag(id, request);
+        if (tag == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag not found");
+        }
+        return tag;
+    }
+
+    @PutMapping("/{id}/reorder")
+    public Tag reorderTag(@PathVariable Long id, @RequestBody ReorderTagRequest request) {
+        Tag tag = tagService.reorderTag(id, request);
         if (tag == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag not found");
         }

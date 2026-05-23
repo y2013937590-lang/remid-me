@@ -1,12 +1,11 @@
-package com.remidme.backend.entity;
+package com.remidme.backend.dto;
 
-public class Tag {
+public class TagCategorySummary {
 
     private Long id;
     private String name;
-    private Long categoryId;
-    private String categoryName;
     private Integer sortOrder;
+    private long tagCount;
 
     public Long getId() {
         return id;
@@ -24,27 +23,19 @@ public class Tag {
         this.name = name;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
     public Integer getSortOrder() {
         return sortOrder;
     }
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public long getTagCount() {
+        return tagCount;
+    }
+
+    public void setTagCount(long tagCount) {
+        this.tagCount = tagCount;
     }
 }

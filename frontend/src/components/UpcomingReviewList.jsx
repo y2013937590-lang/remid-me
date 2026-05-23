@@ -57,7 +57,9 @@ export default function UpcomingReviewList({ reviews, loading, selectedDateKey, 
                 >
                   <div className="calendar-day-head">
                     <span className="calendar-date">{day.dateLabel}</span>
-                    {day.reviews.length > 0 ? <span className="calendar-dot" /> : null}
+                    {day.reviews.length > 0 ? (
+                      <span className={`calendar-dot ${day.dotTone === 'history' ? 'calendar-dot-history' : ''}`} />
+                    ) : null}
                   </div>
                   {day.reviews.length > 0 ? <span className="calendar-day-note">{day.reviews.length} 项</span> : null}
                 </button>
@@ -91,7 +93,8 @@ function buildVisibleMonth(monthKey, groupedReviews) {
       key,
       dateLabel: `${dayNumber}`,
       isToday: key === todayKey,
-      reviews: groupedReviews[key] || []
+      reviews: groupedReviews[key] || [],
+      dotTone: resolveDotTone(key, groupedReviews[key] || [], todayKey)
     });
   }
 
@@ -126,4 +129,16 @@ function shiftMonthKey(value, delta) {
   const date = parseMonthKey(value);
   date.setMonth(date.getMonth() + delta);
   return formatMonthKey(date);
+}
+
+function resolveDotTone(dateKey, reviews, todayKey) {
+  if (!reviews.length) {
+    return 'none';
+  }
+
+  if (dateKey < todayKey) {
+    return 'history';
+  }
+
+  return 'default';
 }

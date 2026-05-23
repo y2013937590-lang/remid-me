@@ -72,8 +72,10 @@ public interface KnowledgeItemMapper {
             "LEFT JOIN review_plan rp ON rp.item_id = ki.id",
             "LEFT JOIN knowledge_item_tag kit ON kit.item_id = ki.id",
             "LEFT JOIN tag t ON t.id = kit.tag_id",
+            "<where>",
             "<if test='keyword != null and keyword != \"\"'>",
-            "WHERE ki.title LIKE CONCAT('%', #{keyword}, '%')",
+            "(",
+            "ki.title LIKE CONCAT('%', #{keyword}, '%')",
             "OR ki.content LIKE CONCAT('%', #{keyword}, '%')",
             "OR EXISTS (",
             "  SELECT 1",
@@ -82,7 +84,17 @@ public interface KnowledgeItemMapper {
             "  WHERE kit2.item_id = ki.id",
             "    AND t2.name LIKE CONCAT('%', #{keyword}, '%')",
             ")",
+            ")",
             "</if>",
+            "<if test='tagId != null'>",
+            "AND EXISTS (",
+            "  SELECT 1",
+            "  FROM knowledge_item_tag kit3",
+            "  WHERE kit3.item_id = ki.id",
+            "    AND kit3.tag_id = #{tagId}",
+            ")",
+            "</if>",
+            "</where>",
             "GROUP BY ki.id, ki.title, ki.content, ki.created_at",
             "ORDER BY ki.created_at DESC, ki.id DESC",
             "LIMIT #{limit} OFFSET #{offset}",
@@ -99,6 +111,7 @@ public interface KnowledgeItemMapper {
     })
     List<KnowledgeItemSummary> findPagedSummaries(
             @Param("keyword") String keyword,
+            @Param("tagId") Long tagId,
             @Param("limit") int limit,
             @Param("offset") int offset
     );
@@ -107,8 +120,10 @@ public interface KnowledgeItemMapper {
             "<script>",
             "SELECT COUNT(*)",
             "FROM knowledge_item ki",
+            "<where>",
             "<if test='keyword != null and keyword != \"\"'>",
-            "WHERE ki.title LIKE CONCAT('%', #{keyword}, '%')",
+            "(",
+            "ki.title LIKE CONCAT('%', #{keyword}, '%')",
             "OR ki.content LIKE CONCAT('%', #{keyword}, '%')",
             "OR EXISTS (",
             "  SELECT 1",
@@ -117,10 +132,20 @@ public interface KnowledgeItemMapper {
             "  WHERE kit.item_id = ki.id",
             "    AND t.name LIKE CONCAT('%', #{keyword}, '%')",
             ")",
+            ")",
             "</if>",
+            "<if test='tagId != null'>",
+            "AND EXISTS (",
+            "  SELECT 1",
+            "  FROM knowledge_item_tag kit2",
+            "  WHERE kit2.item_id = ki.id",
+            "    AND kit2.tag_id = #{tagId}",
+            ")",
+            "</if>",
+            "</where>",
             "</script>"
     })
-    long countSummaries(@Param("keyword") String keyword);
+    long countSummaries(@Param("keyword") String keyword, @Param("tagId") Long tagId);
 
     @Update({
             "UPDATE knowledge_item",

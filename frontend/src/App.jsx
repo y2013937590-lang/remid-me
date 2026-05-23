@@ -41,18 +41,22 @@ export default function App() {
   const [upcomingReviews, setUpcomingReviews] = useState([]);
   const [items, setItems] = useState([]);
   const [tags, setTags] = useState([]);
+  const [tagCategories, setTagCategories] = useState([]);
   const [stats, setStats] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [upcomingLoading, setUpcomingLoading] = useState(false);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(false);
+  const [tagCategoriesLoading, setTagCategoriesLoading] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemReviews, setSelectedItemReviews] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchTagId, setSearchTagId] = useState('');
   const [activeKeyword, setActiveKeyword] = useState('');
+  const [activeTagId, setActiveTagId] = useState('');
   const [libraryPage, setLibraryPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalLibraryPages, setTotalLibraryPages] = useState(1);
@@ -61,23 +65,31 @@ export default function App() {
   const [creatingTag, setCreatingTag] = useState(false);
   const [updatingTagId, setUpdatingTagId] = useState(null);
   const [deletingTagId, setDeletingTagId] = useState(null);
+  const [creatingTagCategory, setCreatingTagCategory] = useState(false);
+  const [updatingTagCategoryId, setUpdatingTagCategoryId] = useState(null);
+  const [deletingTagCategoryId, setDeletingTagCategoryId] = useState(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState(null);
   const [deleteDialogTag, setDeleteDialogTag] = useState(null);
+  const [deleteDialogTagCategory, setDeleteDialogTagCategory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const drawerPanelRef = useRef(null);
 
+  const todayDate = new Date();
+  const tomorrowKey = formatDateKey(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1));
   const dueCount = reviews.length;
   const overdueCount = reviews.filter((review) => review.overdue).length;
+  const tomorrowCount = upcomingReviews.filter((review) => review.scheduledDate === tomorrowKey).length;
   const totalPlans = items.reduce((sum, item) => sum + (item.totalPlans || 0), 0);
   const completedPlans = items.reduce((sum, item) => sum + (item.completedPlans || 0), 0);
   const completionRate = totalPlans === 0 ? 0 : Math.round((completedPlans / totalPlans) * 100);
   const focusReview = reviews[0] || null;
   const overviewItems = items.slice(0, 3);
+  const activeTag = tags.find((tag) => `${tag.id}` === activeTagId) || null;
   const viewBadgeMap = {
     overview: `${completionRate}%`,
     review: `${dueCount}`,
-    upcoming: `${upcomingReviews.length}`,
+    upcoming: `${tomorrowCount}`,
     library: `${totalItems}`,
     stats: `${stats?.completionRate ?? completionRate}%`,
     tags: `${tags.length}`
@@ -101,7 +113,7 @@ export default function App() {
     return response.json();
   };
 
-  const loadItems = async (keyword = activeKeyword, page = libraryPage) => {
+  const loadItems = async (keyword = activeKeyword, tagId = activeTagId, page = libraryPage) => {
     setItemsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -110,6 +122,9 @@ export default function App() {
       });
       if (keyword) {
         params.set('q', keyword);
+      }
+      if (tagId) {
+        params.set('tagId', tagId);
       }
       const data = await requestJson(`/items?${params.toString()}`, {}, '加载知识点列表失败');
       setItems(data.items || []);
@@ -143,6 +158,17 @@ export default function App() {
       return data;
     } finally {
       setTagsLoading(false);
+    }
+  };
+
+  const loadTagCategories = async () => {
+    setTagCategoriesLoading(true);
+    try {
+      const data = await requestJson('/tag-categories', {}, '加载标签分类失败');
+      setTagCategories(data);
+      return data;
+    } finally {
+      setTagCategoriesLoading(false);
     }
   };
 
@@ -185,11 +211,11 @@ export default function App() {
     }
   };
 
-  const refreshDashboard = async (keyword = activeKeyword, page = libraryPage) => {
+  const refreshDashboard = async (keyword = activeKeyword, tagId = activeTagId, page = libraryPage) => {
     setLoading(true);
     setError('');
     try {
-      await Promise.all([loadItems(keyword, page), loadReviews(), loadUpcomingReviews(), loadTags(), loadStats()]);
+      await Promise.all([loadItems(keyword, tagId, page), loadReviews(), loadUpcomingReviews(), loadTags(), loadTagCategories(), loadStats()]);
       if (selectedItem?.id) {
         await openItemDetails(selectedItem.id);
       }
@@ -201,8 +227,34 @@ export default function App() {
   };
 
   useEffect(() => {
-    refreshDashboard(activeKeyword, libraryPage);
-  }, [activeKeyword, libraryPage]);
+    refreshDashboard(activeKeyword, activeTagId, libraryPage);
+  }, [activeKeyword, activeTagId, libraryPage]);
+
+  useEffect(() => {
+    const trimmedKeyword = searchKeyword.trim();
+    if (trimmedKeyword === activeKeyword) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setLibraryPage(1);
+      setActiveKeyword(trimmedKeyword);
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchKeyword, activeKeyword]);
+
+  useEffect(() => {
+    if (searchTagId && !tags.some((tag) => `${tag.id}` === searchTagId)) {
+      setSearchTagId('');
+    }
+
+    if (activeTagId && !tags.some((tag) => `${tag.id}` === activeTagId)) {
+      setActiveTagId('');
+    }
+  }, [tags, searchTagId, activeTagId]);
 
   useEffect(() => {
     if (!isDetailsOpen) {
@@ -230,7 +282,7 @@ export default function App() {
     setEditingItem(null);
     setIsItemModalOpen(false);
     try {
-      await Promise.all([loadItems(activeKeyword, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadStats()]);
+      await Promise.all([loadItems(activeKeyword, activeTagId, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadTagCategories(), loadStats()]);
       if (currentItemId) {
         await openItemDetails(currentItemId);
       }
@@ -254,7 +306,7 @@ export default function App() {
         },
         '标记复习完成失败'
       );
-      await Promise.all([loadItems(activeKeyword, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadStats()]);
+      await Promise.all([loadItems(activeKeyword, activeTagId, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadTagCategories(), loadStats()]);
       if (selectedItem?.id) {
         await openItemDetails(selectedItem.id);
       }
@@ -290,7 +342,7 @@ export default function App() {
         setSelectedItem(null);
         setSelectedItemReviews([]);
       }
-      await Promise.all([loadItems(activeKeyword, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadStats()]);
+      await Promise.all([loadItems(activeKeyword, activeTagId, libraryPage), loadReviews(), loadUpcomingReviews(), loadTags(), loadTagCategories(), loadStats()]);
     } catch (err) {
       setError(getErrorMessage('删除知识点失败', err));
     } finally {
@@ -299,16 +351,20 @@ export default function App() {
     }
   };
 
-  const handleSearchSubmit = async (event) => {
-    event.preventDefault();
-    setLibraryPage(1);
-    setActiveKeyword(searchKeyword.trim());
-  };
+  const handleSearchTagChange = async (tagId) => {
+    const nextTagId = tagId || '';
+    const trimmedKeyword = searchKeyword.trim();
 
-  const handleSearchClear = () => {
-    setSearchKeyword('');
+    setSearchTagId(nextTagId);
     setLibraryPage(1);
-    setActiveKeyword('');
+
+    if (activeTagId === nextTagId && activeKeyword === trimmedKeyword && libraryPage === 1) {
+      await loadItems(trimmedKeyword, nextTagId, 1);
+      return;
+    }
+
+    setActiveKeyword(trimmedKeyword);
+    setActiveTagId(nextTagId);
   };
 
   const handleTagFilter = async (tag) => {
@@ -318,14 +374,29 @@ export default function App() {
     }
 
     setActiveView('library');
-    setSearchKeyword(normalizedTag);
     setSelectedUpcomingDate(null);
-    if (activeKeyword === normalizedTag && libraryPage === 1) {
-      await loadItems(normalizedTag, 1);
+    setSelectedUpcomingReviews([]);
+
+    const matchedTag = tags.find((item) => item.name === normalizedTag);
+    if (matchedTag) {
+      const nextTagId = `${matchedTag.id}`;
+      setSearchKeyword('');
+      setSearchTagId(nextTagId);
+      if (activeTagId === nextTagId && !activeKeyword && libraryPage === 1) {
+        await loadItems('', nextTagId, 1);
+        return;
+      }
+      setLibraryPage(1);
+      setActiveKeyword('');
+      setActiveTagId(nextTagId);
       return;
     }
+
+    setSearchKeyword(normalizedTag);
+    setSearchTagId('');
     setLibraryPage(1);
     setActiveKeyword(normalizedTag);
+    setActiveTagId('');
   };
 
   const handleOpenDetails = async (itemId, targetView = 'library') => {
@@ -335,7 +406,7 @@ export default function App() {
   };
 
   const refreshTagDependencies = async () => {
-    await Promise.all([loadTags(), loadItems(activeKeyword, libraryPage)]);
+    await Promise.all([loadTags(), loadTagCategories(), loadItems(activeKeyword, activeTagId, libraryPage), loadStats()]);
     if (selectedItem?.id) {
       await openItemDetails(selectedItem.id);
     }
@@ -386,7 +457,7 @@ export default function App() {
     setSelectedUpcomingReviews([]);
   };
 
-  const handleCreateTag = async (name) => {
+  const handleCreateTag = async (name, categoryId) => {
     setCreatingTag(true);
     setError('');
     try {
@@ -397,7 +468,7 @@ export default function App() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name })
+          body: JSON.stringify({ name, categoryId })
         },
         '新建标签失败'
       );
@@ -411,7 +482,7 @@ export default function App() {
     }
   };
 
-  const handleRenameTag = async (tagId, name) => {
+  const handleRenameTag = async (tagId, name, categoryId) => {
     setUpdatingTagId(tagId);
     setError('');
     try {
@@ -422,7 +493,7 @@ export default function App() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name })
+          body: JSON.stringify({ name, categoryId })
         },
         '更新标签失败'
       );
@@ -438,6 +509,91 @@ export default function App() {
 
   const handleDeleteTag = async (tagId) => {
     setDeleteDialogTag(tags.find((tag) => tag.id === tagId) || { id: tagId });
+  };
+
+  const handleReorderTag = async (tagId, categoryId, targetIndex) => {
+    setUpdatingTagId(tagId);
+    setError('');
+    const previousTags = tags;
+    const previousCategories = tagCategories;
+    const nextTags = reorderTagsLocally(tags, tagCategories, tagId, categoryId, targetIndex);
+    setTags(nextTags);
+    setTagCategories(syncCategoryCounts(tagCategories, nextTags));
+    try {
+      await requestJson(
+        `/tags/${tagId}/reorder`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ categoryId, targetIndex })
+        },
+        '调整标签顺序失败'
+      );
+    } catch (err) {
+      setTags(previousTags);
+      setTagCategories(previousCategories);
+      const message = getErrorMessage('调整标签顺序失败', err);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setUpdatingTagId(null);
+    }
+  };
+
+  const handleCreateTagCategory = async (name) => {
+    setCreatingTagCategory(true);
+    setError('');
+    try {
+      await requestJson(
+        '/tag-categories',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name })
+        },
+        '新建分类失败'
+      );
+      await refreshTagDependencies();
+    } catch (err) {
+      const message = getErrorMessage('新建分类失败', err);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setCreatingTagCategory(false);
+    }
+  };
+
+  const handleRenameTagCategory = async (categoryId, name, sortOrder) => {
+    setUpdatingTagCategoryId(categoryId);
+    setError('');
+    try {
+      await requestJson(
+        `/tag-categories/${categoryId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, sortOrder })
+        },
+        '更新分类失败'
+      );
+      await refreshTagDependencies();
+    } catch (err) {
+      const message = getErrorMessage('更新分类失败', err);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setUpdatingTagCategoryId(null);
+    }
+  };
+
+  const handleDeleteTagCategory = async (categoryId) => {
+    setDeleteDialogTagCategory(tagCategories.find((category) => category.id === categoryId) || { id: categoryId });
   };
 
   const handleConfirmDeleteTag = async () => {
@@ -458,6 +614,27 @@ export default function App() {
     } finally {
       setDeletingTagId(null);
       setDeleteDialogTag(null);
+    }
+  };
+
+  const handleConfirmDeleteTagCategory = async () => {
+    if (!deleteDialogTagCategory?.id) {
+      return;
+    }
+
+    const categoryId = deleteDialogTagCategory.id;
+    setDeletingTagCategoryId(categoryId);
+    setError('');
+    try {
+      await requestJson(`/tag-categories/${categoryId}`, { method: 'DELETE' }, '删除分类失败');
+      await refreshTagDependencies();
+    } catch (err) {
+      const message = getErrorMessage('删除分类失败', err);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setDeletingTagCategoryId(null);
+      setDeleteDialogTagCategory(null);
     }
   };
 
@@ -619,9 +796,11 @@ export default function App() {
       <SearchToolbar
         value={searchKeyword}
         activeKeyword={activeKeyword}
+        selectedTagId={searchTagId}
+        activeTagName={activeTag?.name || ''}
+        tagGroups={availableTagGroups}
         onChange={setSearchKeyword}
-        onSubmit={handleSearchSubmit}
-        onClear={handleSearchClear}
+        onTagChange={handleSearchTagChange}
       />
 
       <section className="library-layout">
@@ -647,17 +826,27 @@ export default function App() {
   const renderTagsWorkspace = () => (
     <section className="library-layout">
       <TagManager
+        categories={tagCategories}
         tags={tags}
-        loading={tagsLoading}
-        creating={creatingTag}
+        loading={tagsLoading || tagCategoriesLoading}
+        creatingTag={creatingTag}
         updatingTagId={updatingTagId}
         deletingTagId={deletingTagId}
-        onCreate={handleCreateTag}
-        onRename={handleRenameTag}
-        onDelete={handleDeleteTag}
+        creatingCategory={creatingTagCategory}
+        updatingCategoryId={updatingTagCategoryId}
+        deletingCategoryId={deletingTagCategoryId}
+        onCreateTag={handleCreateTag}
+        onUpdateTag={handleRenameTag}
+        onDeleteTag={handleDeleteTag}
+        onCreateCategory={handleCreateTagCategory}
+        onUpdateCategory={handleRenameTagCategory}
+        onDeleteCategory={handleDeleteTagCategory}
+        onReorderTag={handleReorderTag}
       />
     </section>
   );
+
+  const availableTagGroups = buildTagGroups(tagCategories, tags);
 
   const renderStatsWorkspace = () => (
     <section className="library-layout">
@@ -730,7 +919,7 @@ export default function App() {
             <AddItemForm
               apiBaseUrl={API_BASE_URL}
               editingItem={editingItem}
-              availableTags={tags}
+              availableTagGroups={availableTagGroups}
               onSaved={handleItemSaved}
               onCancelEdit={handleCloseItemModal}
               onManageTags={handleManageTags}
@@ -775,6 +964,29 @@ export default function App() {
         </div>
       ) : null}
 
+      {deleteDialogTagCategory ? (
+        <div className="modal-backdrop" onClick={() => setDeleteDialogTagCategory(null)}>
+          <div className="modal-card modal-card-compact" onClick={(event) => event.stopPropagation()}>
+            <section className="panel form-panel">
+              <h2 className="section-title">删除分类：{deleteDialogTagCategory.name || '未命名'}</h2>
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="button-danger"
+                  onClick={handleConfirmDeleteTagCategory}
+                  disabled={deletingTagCategoryId === deleteDialogTagCategory.id}
+                >
+                  {deletingTagCategoryId === deleteDialogTagCategory.id ? '删除中...' : '确认删除'}
+                </button>
+                <button type="button" className="button-secondary" onClick={() => setDeleteDialogTagCategory(null)}>
+                  取消
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      ) : null}
+
       {isDetailsOpen ? (
         <div className="drawer-shell">
           <aside ref={drawerPanelRef} className="drawer-panel">
@@ -797,33 +1009,42 @@ export default function App() {
                 <p className="empty-state">当天没有计划。</p>
               ) : (
                 <div className="list-stack">
-                  {selectedUpcomingReviews.map((review) => (
-                    <div key={review.reviewId} className="mini-item">
-                      <button
-                        type="button"
-                        className="mini-item-link"
-                        onClick={() => {
-                          handleOpenDetails(review.itemId, 'upcoming');
-                        }}
-                      >
-                        <strong className="mini-title">{review.title}</strong>
-                      </button>
-                      {parseTags(review.tags).length > 0 ? (
-                        <div className="tag-list">
-                          {parseTags(review.tags).map((tag) => (
-                            <button
-                              key={`${review.reviewId}-${tag}`}
-                              type="button"
-                              className="tag tag-neutral tag-button"
-                              onClick={() => handleTagFilter(tag)}
-                            >
-                              {tag}
-                            </button>
-                          ))}
+                  {selectedUpcomingReviews.map((review) => {
+                    const reviewTags = parseTags(review.tags);
+
+                    return (
+                      <div key={review.reviewId} className="mini-item upcoming-detail-item">
+                        <div className="upcoming-detail-row">
+                          <button
+                            type="button"
+                            className="mini-item-link upcoming-detail-title"
+                            onClick={() => {
+                              handleOpenDetails(review.itemId, 'upcoming');
+                            }}
+                          >
+                            <strong className="mini-title">{review.title}</strong>
+                          </button>
+                          <span className={`tag ${review.status === 'completed' ? 'tag-dark' : 'tag-neutral'}`}>
+                            {review.status === 'completed' ? '已完成' : '待复习'}
+                          </span>
+                          {reviewTags.length > 0 ? (
+                            <div className="tag-list upcoming-detail-tags">
+                              {reviewTags.map((tag) => (
+                                <button
+                                  key={`${review.reviewId}-${tag}`}
+                                  type="button"
+                                  className="tag tag-neutral tag-button"
+                                  onClick={() => handleTagFilter(tag)}
+                                >
+                                  {tag}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
-                      ) : null}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="button-row">
@@ -848,4 +1069,97 @@ function parseTags(value) {
     .split(',')
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function buildTagGroups(categories, tags) {
+  const groups = categories
+    .map((category) => ({
+      id: `category-${category.id}`,
+      name: category.name,
+      tags: tags.filter((tag) => tag.categoryId === category.id)
+    }))
+    .filter((group) => group.tags.length > 0);
+
+  const uncategorizedTags = tags.filter((tag) => tag.categoryId == null);
+  if (uncategorizedTags.length > 0) {
+    groups.push({
+      id: 'uncategorized',
+      name: '未分类',
+      tags: uncategorizedTags
+    });
+  }
+
+  return groups;
+}
+
+function reorderTagsLocally(tags, categories, tagId, targetCategoryId, targetIndex) {
+  const movingTag = tags.find((tag) => tag.id === tagId);
+  if (!movingTag) {
+    return tags;
+  }
+
+  const groups = new Map();
+  categories.forEach((category) => {
+    groups.set(category.id, []);
+  });
+  groups.set(null, []);
+
+  tags.forEach((tag) => {
+    const key = tag.categoryId ?? null;
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key).push({ ...tag });
+  });
+
+  const sourceCategoryId = movingTag.categoryId ?? null;
+  const sourceGroup = [...(groups.get(sourceCategoryId) || [])].filter((tag) => tag.id !== tagId);
+  const targetGroupBase = sourceCategoryId === (targetCategoryId ?? null) ? sourceGroup : [...(groups.get(targetCategoryId ?? null) || [])];
+  const safeIndex = Math.max(0, Math.min(targetIndex, targetGroupBase.length));
+  const reorderedTag = { ...movingTag, categoryId: targetCategoryId ?? null };
+  const targetGroup = [...targetGroupBase.slice(0, safeIndex), reorderedTag, ...targetGroupBase.slice(safeIndex)].map((tag, index) => ({
+    ...tag,
+    sortOrder: index + 1
+  }));
+
+  groups.set(targetCategoryId ?? null, targetGroup);
+  if (sourceCategoryId !== (targetCategoryId ?? null)) {
+    groups.set(
+      sourceCategoryId,
+      sourceGroup.map((tag, index) => ({
+        ...tag,
+        sortOrder: index + 1
+      }))
+    );
+  }
+
+  const ordered = [];
+  categories.forEach((category) => {
+    ordered.push(...(groups.get(category.id) || []));
+  });
+  ordered.push(...(groups.get(null) || []));
+  return ordered;
+}
+
+function syncCategoryCounts(categories, tags) {
+  const countByCategoryId = new Map();
+  tags.forEach((tag) => {
+    if (tag.categoryId == null) {
+      return;
+    }
+    countByCategoryId.set(tag.categoryId, (countByCategoryId.get(tag.categoryId) || 0) + 1);
+  });
+
+  return categories.map((category) => ({
+    ...category,
+    tagCount: countByCategoryId.get(category.id) || 0
+  }));
+}
+
+
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

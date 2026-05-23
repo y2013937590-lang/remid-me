@@ -3,12 +3,12 @@ package com.remidme.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class SaveTagRequest {
+public class SaveTagCategoryRequest {
 
     @NotBlank(message = "name cannot be blank")
     @Size(max = 100, message = "name length must be less than or equal to 100")
     private String name;
-    private Long categoryId;
+    private Integer sortOrder;
 
     public String getName() {
         return name;
@@ -18,11 +18,11 @@ public class SaveTagRequest {
         this.name = name;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public Integer getSortOrder() {
+        return sortOrder;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

@@ -31,8 +31,7 @@ public class ReviewPlanService {
     }
 
     public List<UpcomingReviewItem> getUpcomingPendingReviews() {
-        LocalDate today = LocalDate.now();
-        return reviewPlanMapper.findUpcomingPendingAfter(today);
+        return reviewPlanMapper.findCalendarReviews();
     }
 
     @Transactional

@@ -12,6 +12,7 @@ public class TodayReviewItem {
     private LocalDate scheduledDate;
     private String status;
     private boolean overdue;
+    private String latestStudyNote;
 
     public Long getReviewId() {
         return reviewId;
@@ -75,5 +76,13 @@ public class TodayReviewItem {
 
     public void setOverdue(boolean overdue) {
         this.overdue = overdue;
+    }
+
+    public String getLatestStudyNote() {
+        return latestStudyNote;
+    }
+
+    public void setLatestStudyNote(String latestStudyNote) {
+        this.latestStudyNote = latestStudyNote;
     }
 }

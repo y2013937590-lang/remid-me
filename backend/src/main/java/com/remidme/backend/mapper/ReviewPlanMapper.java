@@ -38,6 +38,14 @@ public interface ReviewPlanMapper {
             "ki.title,",
             "ki.content,",
             "GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tags,",
+            "(SELECT rp2.study_note",
+            " FROM review_plan rp2",
+            " WHERE rp2.item_id = ki.id",
+            "   AND rp2.status = 'completed'",
+            "   AND rp2.study_note IS NOT NULL",
+            "   AND rp2.study_note <> ''",
+            " ORDER BY rp2.completed_at DESC, rp2.id DESC",
+            " LIMIT 1) AS latest_study_note,",
             "rp.scheduled_date,",
             "rp.status",
             "FROM review_plan rp",
@@ -52,7 +60,8 @@ public interface ReviewPlanMapper {
     @Results(id = "todayReviewItemResult", value = {
             @Result(property = "reviewId", column = "review_id"),
             @Result(property = "itemId", column = "item_id"),
-            @Result(property = "scheduledDate", column = "scheduled_date")
+            @Result(property = "scheduledDate", column = "scheduled_date"),
+            @Result(property = "latestStudyNote", column = "latest_study_note")
     })
     List<TodayReviewItem> findPendingDueUntil(@Param("date") LocalDate date);
 
@@ -121,14 +130,13 @@ public interface ReviewPlanMapper {
             "ki.id AS item_id,",
             "ki.title,",
             "GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tags,",
-            "rp.scheduled_date",
+            "rp.scheduled_date,",
+            "rp.status",
             "FROM review_plan rp",
             "JOIN knowledge_item ki ON rp.item_id = ki.id",
             "LEFT JOIN knowledge_item_tag kit ON kit.item_id = ki.id",
             "LEFT JOIN tag t ON t.id = kit.tag_id",
-            "WHERE rp.scheduled_date > #{startDate}",
-            "AND rp.status = 'pending'",
-            "GROUP BY rp.id, ki.id, ki.title, rp.scheduled_date",
+            "GROUP BY rp.id, ki.id, ki.title, rp.scheduled_date, rp.status",
             "ORDER BY rp.scheduled_date ASC, rp.id ASC"
     })
     @Results(id = "upcomingReviewItemResult", value = {
@@ -136,5 +144,5 @@ public interface ReviewPlanMapper {
             @Result(property = "itemId", column = "item_id"),
             @Result(property = "scheduledDate", column = "scheduled_date")
     })
-    List<UpcomingReviewItem> findUpcomingPendingAfter(@Param("startDate") LocalDate startDate);
+    List<UpcomingReviewItem> findCalendarReviews();
 }

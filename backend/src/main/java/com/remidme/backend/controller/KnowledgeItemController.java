@@ -35,10 +35,11 @@ public class KnowledgeItemController {
     @GetMapping
     public KnowledgeItemPageResponse getItems(
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long tagId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize
     ) {
-        return knowledgeItemService.getItemSummaries(q, page, pageSize);
+        return knowledgeItemService.getItemSummaries(q, tagId, page, pageSize);
     }
 
     @GetMapping("/{id}")

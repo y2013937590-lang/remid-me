@@ -50,16 +50,17 @@ public class KnowledgeItemService {
         return getItem(item.getId());
     }
 
-    public KnowledgeItemPageResponse getItemSummaries(String keyword, int page, int pageSize) {
+    public KnowledgeItemPageResponse getItemSummaries(String keyword, Long tagId, int page, int pageSize) {
         String normalizedKeyword = normalizeKeyword(keyword);
+        Long normalizedTagId = normalizeTagId(tagId);
         int safePageSize = Math.max(pageSize, 1);
-        long total = knowledgeItemMapper.countSummaries(normalizedKeyword);
+        long total = knowledgeItemMapper.countSummaries(normalizedKeyword, normalizedTagId);
         int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / safePageSize);
         int safePage = Math.min(Math.max(page, 1), totalPages);
         int offset = (safePage - 1) * safePageSize;
 
         KnowledgeItemPageResponse response = new KnowledgeItemPageResponse();
-        response.setItems(knowledgeItemMapper.findPagedSummaries(normalizedKeyword, safePageSize, offset));
+        response.setItems(knowledgeItemMapper.findPagedSummaries(normalizedKeyword, normalizedTagId, safePageSize, offset));
         response.setPage(safePage);
         response.setPageSize(safePageSize);
         response.setTotal(total);
@@ -125,6 +126,13 @@ public class KnowledgeItemService {
 
         String trimmed = keyword.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Long normalizeTagId(Long tagId) {
+        if (tagId == null || tagId <= 0) {
+            return null;
+        }
+        return tagId;
     }
 
     private List<Long> normalizeTagIds(List<Long> tagIds) {

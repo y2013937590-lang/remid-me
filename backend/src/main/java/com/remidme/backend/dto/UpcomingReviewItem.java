@@ -9,6 +9,7 @@ public class UpcomingReviewItem {
     private String title;
     private String tags;
     private LocalDate scheduledDate;
+    private String status;
 
     public Long getReviewId() {
         return reviewId;
@@ -48,5 +49,13 @@ public class UpcomingReviewItem {
 
     public void setScheduledDate(LocalDate scheduledDate) {
         this.scheduledDate = scheduledDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

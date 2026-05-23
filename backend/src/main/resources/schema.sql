@@ -6,9 +6,20 @@ CREATE TABLE knowledge_item (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE tag_category (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE tag (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE
+  name VARCHAR(100) NOT NULL UNIQUE,
+  category_id BIGINT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  INDEX idx_tag_category_id (category_id),
+  FOREIGN KEY (category_id) REFERENCES tag_category(id)
 );
 
 CREATE TABLE knowledge_item_tag (

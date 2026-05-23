@@ -4,6 +4,9 @@ public class TagSummary {
 
     private Long id;
     private String name;
+    private Long categoryId;
+    private String categoryName;
+    private Integer sortOrder;
     private long itemCount;
 
     public Long getId() {
@@ -20,6 +23,30 @@ public class TagSummary {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
     }
 
     public long getItemCount() {
