@@ -68,6 +68,25 @@ public class KnowledgeItemController {
 
     @PutMapping("/{id}")
     public KnowledgeItem updateItem(@PathVariable Long id, @Valid @RequestBody SaveKnowledgeItemRequest request) {
+        return doUpdateItem(id, request);
+    }
+
+    @PostMapping("/{id}/update")
+    public KnowledgeItem updateItemByPost(@PathVariable Long id, @Valid @RequestBody SaveKnowledgeItemRequest request) {
+        return doUpdateItem(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Map<String, Object> deleteItem(@PathVariable Long id) {
+        return doDeleteItem(id);
+    }
+
+    @PostMapping("/{id}/delete")
+    public Map<String, Object> deleteItemByPost(@PathVariable Long id) {
+        return doDeleteItem(id);
+    }
+
+    private KnowledgeItem doUpdateItem(Long id, SaveKnowledgeItemRequest request) {
         KnowledgeItem item = knowledgeItemService.updateItem(id, request);
         if (item == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "knowledge item not found");
@@ -75,8 +94,7 @@ public class KnowledgeItemController {
         return item;
     }
 
-    @DeleteMapping("/{id}")
-    public Map<String, Object> deleteItem(@PathVariable Long id) {
+    private Map<String, Object> doDeleteItem(Long id) {
         boolean deleted = knowledgeItemService.deleteItem(id);
         if (!deleted) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "knowledge item not found");

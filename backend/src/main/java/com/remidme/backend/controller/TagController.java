@@ -44,6 +44,35 @@ public class TagController {
 
     @PutMapping("/{id}")
     public Tag updateTag(@PathVariable Long id, @Valid @RequestBody SaveTagRequest request) {
+        return doUpdateTag(id, request);
+    }
+
+    @PostMapping("/{id}/update")
+    public Tag updateTagByPost(@PathVariable Long id, @Valid @RequestBody SaveTagRequest request) {
+        return doUpdateTag(id, request);
+    }
+
+    @PutMapping("/{id}/reorder")
+    public Tag reorderTag(@PathVariable Long id, @RequestBody ReorderTagRequest request) {
+        return doReorderTag(id, request);
+    }
+
+    @PostMapping("/{id}/reorder")
+    public Tag reorderTagByPost(@PathVariable Long id, @RequestBody ReorderTagRequest request) {
+        return doReorderTag(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Map<String, Object> deleteTag(@PathVariable Long id) {
+        return doDeleteTag(id);
+    }
+
+    @PostMapping("/{id}/delete")
+    public Map<String, Object> deleteTagByPost(@PathVariable Long id) {
+        return doDeleteTag(id);
+    }
+
+    private Tag doUpdateTag(Long id, SaveTagRequest request) {
         Tag tag = tagService.updateTag(id, request);
         if (tag == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag not found");
@@ -51,8 +80,7 @@ public class TagController {
         return tag;
     }
 
-    @PutMapping("/{id}/reorder")
-    public Tag reorderTag(@PathVariable Long id, @RequestBody ReorderTagRequest request) {
+    private Tag doReorderTag(Long id, ReorderTagRequest request) {
         Tag tag = tagService.reorderTag(id, request);
         if (tag == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag not found");
@@ -60,8 +88,7 @@ public class TagController {
         return tag;
     }
 
-    @DeleteMapping("/{id}")
-    public Map<String, Object> deleteTag(@PathVariable Long id) {
+    private Map<String, Object> doDeleteTag(Long id) {
         boolean deleted = tagService.deleteTag(id);
         if (!deleted) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag not found");

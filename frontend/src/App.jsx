@@ -298,7 +298,7 @@ export default function App() {
       await requestJson(
         `/reviews/${reviewId}/complete`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -332,7 +332,7 @@ export default function App() {
     setDeletingItemId(itemId);
     setError('');
     try {
-      await requestJson(`/items/${itemId}`, { method: 'DELETE' }, '删除知识点失败');
+      await requestJson(`/items/${itemId}/delete`, { method: 'POST' }, '删除知识点失败');
       if (editingItem?.id === itemId) {
         setEditingItem(null);
         setIsItemModalOpen(false);
@@ -487,9 +487,9 @@ export default function App() {
     setError('');
     try {
       await requestJson(
-        `/tags/${tagId}`,
+        `/tags/${tagId}/update`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -523,7 +523,7 @@ export default function App() {
       await requestJson(
         `/tags/${tagId}/reorder`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -572,9 +572,9 @@ export default function App() {
     setError('');
     try {
       await requestJson(
-        `/tag-categories/${categoryId}`,
+        `/tag-categories/${categoryId}/update`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -605,7 +605,7 @@ export default function App() {
     setDeletingTagId(tagId);
     setError('');
     try {
-      await requestJson(`/tags/${tagId}`, { method: 'DELETE' }, '删除标签失败');
+      await requestJson(`/tags/${tagId}/delete`, { method: 'POST' }, '删除标签失败');
       await refreshTagDependencies();
     } catch (err) {
       const message = getErrorMessage('删除标签失败', err);
@@ -626,7 +626,7 @@ export default function App() {
     setDeletingTagCategoryId(categoryId);
     setError('');
     try {
-      await requestJson(`/tag-categories/${categoryId}`, { method: 'DELETE' }, '删除分类失败');
+      await requestJson(`/tag-categories/${categoryId}/delete`, { method: 'POST' }, '删除分类失败');
       await refreshTagDependencies();
     } catch (err) {
       const message = getErrorMessage('删除分类失败', err);

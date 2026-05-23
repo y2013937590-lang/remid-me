@@ -63,8 +63,8 @@ export default function AddItemForm({
     setFeedback({ type: '', text: '' });
 
     const isEditing = Boolean(editingItem);
-    const path = isEditing ? `${apiBaseUrl}/items/${editingItem.id}` : `${apiBaseUrl}/items`;
-    const method = isEditing ? 'PUT' : 'POST';
+    const path = isEditing ? `${apiBaseUrl}/items/${editingItem.id}/update` : `${apiBaseUrl}/items`;
+    const method = 'POST';
 
     try {
       const response = await fetch(path, {

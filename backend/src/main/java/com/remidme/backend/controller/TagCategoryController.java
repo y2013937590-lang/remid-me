@@ -44,6 +44,35 @@ public class TagCategoryController {
 
     @PutMapping("/{id}")
     public TagCategory updateCategory(@PathVariable Long id, @Valid @RequestBody SaveTagCategoryRequest request) {
+        return doUpdateCategory(id, request);
+    }
+
+    @PostMapping("/{id}/update")
+    public TagCategory updateCategoryByPost(@PathVariable Long id, @Valid @RequestBody SaveTagCategoryRequest request) {
+        return doUpdateCategory(id, request);
+    }
+
+    @PutMapping("/{id}/reorder")
+    public TagCategory reorderCategory(@PathVariable Long id, @RequestBody ReorderTagCategoryRequest request) {
+        return doReorderCategory(id, request);
+    }
+
+    @PostMapping("/{id}/reorder")
+    public TagCategory reorderCategoryByPost(@PathVariable Long id, @RequestBody ReorderTagCategoryRequest request) {
+        return doReorderCategory(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Map<String, Object> deleteCategory(@PathVariable Long id) {
+        return doDeleteCategory(id);
+    }
+
+    @PostMapping("/{id}/delete")
+    public Map<String, Object> deleteCategoryByPost(@PathVariable Long id) {
+        return doDeleteCategory(id);
+    }
+
+    private TagCategory doUpdateCategory(Long id, SaveTagCategoryRequest request) {
         TagCategory category = tagCategoryService.updateCategory(id, request);
         if (category == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag category not found");
@@ -51,8 +80,7 @@ public class TagCategoryController {
         return category;
     }
 
-    @PutMapping("/{id}/reorder")
-    public TagCategory reorderCategory(@PathVariable Long id, @RequestBody ReorderTagCategoryRequest request) {
+    private TagCategory doReorderCategory(Long id, ReorderTagCategoryRequest request) {
         TagCategory category = tagCategoryService.reorderCategory(id, request);
         if (category == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag category not found");
@@ -60,8 +88,7 @@ public class TagCategoryController {
         return category;
     }
 
-    @DeleteMapping("/{id}")
-    public Map<String, Object> deleteCategory(@PathVariable Long id) {
+    private Map<String, Object> doDeleteCategory(Long id) {
         boolean deleted = tagCategoryService.deleteCategory(id);
         if (!deleted) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "tag category not found");
