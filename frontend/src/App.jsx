@@ -8,7 +8,7 @@ import TagManager from './components/TagManager';
 import TodayReviewList from './components/TodayReviewList';
 import UpcomingReviewList from './components/UpcomingReviewList';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const ITEMS_PER_PAGE = 20;
 const VIEW_CONFIG = {
   overview: {
